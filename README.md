@@ -31,6 +31,7 @@ The project is being developed step by step, with configurations, practical exer
 ## Documentation
 
 - [Ubuntu Server Setup](docs/ubuntu-server-setup.md)
+- [Wazuh Server Setup](docs/wazuh-server-setup.md)
 
 Additional documentation will be added as the lab progresses.
 
