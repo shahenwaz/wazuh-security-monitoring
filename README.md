@@ -23,7 +23,7 @@ The project is being developed step by step, with configurations, practical exer
 - [x] Install Wazuh SIEM
 - [x] Configure networking and SSH
 - [x] Verify Wazuh Dashboard and API
-- [ ] Deploy and connect Windows Agent
+- [x] Deploy and connect Windows Agent
 - [ ] Monitor Windows security events
 - [ ] Test detection and investigate alerts
 - [ ] Document investigation findings
@@ -32,6 +32,7 @@ The project is being developed step by step, with configurations, practical exer
 
 - [Ubuntu Server Setup](docs/ubuntu-server-setup.md)
 - [Wazuh Server Setup](docs/wazuh-server-setup.md)
+- [Windows VM and Wazuh Agent Setup](docs/windows-agent-setup.md)
 
 Additional documentation will be added as the lab progresses.
 
