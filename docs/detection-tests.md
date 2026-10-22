@@ -53,7 +53,56 @@ Restart-Service -Name WazuhSvc
 
 ## 2. [Windows Authentication Monitoring](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/Appendix-L--Events-to-Monitor)
 
-_Pending testing and analysis._
+**Objective:** Verify that Wazuh detects successful and failed Windows login attempts.
+
+**Endpoint:** `SOC-Windows` (agent `001`)
+
+The Windows agent was already configured to collect Security events through the `eventchannel` log format in `ossec.conf`. No additional configuration was required.
+
+### Test Activity
+
+1. Locked the Windows VM using `Win + L`.
+2. Entered an incorrect password few times for the `socwinagent` account.
+3. Signed in using the correct password.
+4. Verified the failed login in Windows Event Viewer under **Windows Logs → Security** (Event ID `4625`).
+5. Checked **Wazuh Threat Hunting → Events** for the corresponding authentication alerts.
+
+### Detection Results
+
+| Activity         | Windows Event ID | Wazuh Rule ID | Level | Result   |
+| ---------------- | ---------------- | ------------- | ----- | -------- |
+| Failed login     | `4625`           | `60122`       | 5     | Detected |
+| Successful login | `4624`           | `60118`       | 3     | Detected |
+
+![Windows authentication events in Wazuh](../images/windows-authentication-events.png)
+
+### Observations and Analysis
+
+**Failed login:** Wazuh recorded the unsuccessful authentication attempt under Rule `60122`, with the description `Logon Failure - Unknown user or bad password`.
+
+![Wazuh failed login detection rule](../images/windows-failed-login-details2.png)
+
+The failed event details showed:
+
+| Field            | Observed value | Interpretation                    |
+| ---------------- | -------------- | --------------------------------- |
+| Windows Event ID | `4625`         | Failed Windows logon              |
+| Target account   | `socwinagent`  | Account used in the login attempt |
+| Logon type       | `2`            | Interactive Windows login         |
+| Status           | `0xC000006D`   | Authentication failure            |
+| Substatus        | `0xC000006A`   | Incorrect password                |
+
+These values matched our controlled failed-password test.
+
+![Windows failed login event details](../images/windows-failed-login-details.png)
+
+**Successful login:** After entering the correct password, Wazuh recorded a successful workstation login under Rule `60118` (Level 3).
+
+The successful authentication appeared shortly after the failed attempt, allowing both events to be reviewed in sequence.
+
+Multiple failed-login events were visible in the dashboard, but these were generated during our own testing and do not establish a brute-force attack.
+
+**Result:** Wazuh successfully detected both failed and successful interactive Windows logins, including the relevant Windows Event IDs and Wazuh detection rules.
 
 ## 3. [SSH Authentication Monitoring](https://documentation.wazuh.com/current/proof-of-concept-guide/detect-brute-force-attack.html)
 
