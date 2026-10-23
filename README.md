@@ -1,42 +1,46 @@
-# SOC Home Lab - Wazuh SIEM
+# Security Monitoring & Analysis with Wazuh
 
-A hands-on cybersecurity / SOC home lab built to practise SIEM monitoring, log analysis, threat detection, and basic incident investigation using Wazuh.
-
-The project is being developed step by step, with configurations, practical exercises, and findings documented along the way.
+A home lab using [Wazuh](https://wazuh.com/) SIEM to collect, monitor and analyse security events from Windows and Ubuntu systems. The project includes file integrity monitoring, authentication monitoring and controlled detection tests.
 
 ## Lab Architecture
 
-![SOC Home Lab Architecture](images/SOCproject_001_diagram_SIEM_wazuh_.png)
+![Wazuh Security Monitoring Architecture](images/wazuh-security-monitoring-project-architecture.png)
 
-### Environment
+The environment uses a VirtualBox Host-only network for communication between the systems, with NAT adapters for internet access.
 
-| Component               | Purpose                               |
-| ----------------------- | ------------------------------------- |
-| Oracle VirtualBox       | Virtualization platform               |
-| Ubuntu Server 24.04 LTS | Wazuh Manager, Indexer, and Dashboard |
-| Windows VM              | Wazuh Agent and event log monitoring  |
-| Kali Linux              | Controlled security testing           |
+| Component               | Purpose                                              |
+| ----------------------- | ---------------------------------------------------- |
+| Oracle VirtualBox       | Virtualization and lab networking                    |
+| Ubuntu Server 24.04 LTS | Wazuh Manager, Indexer, Dashboard and SSH monitoring |
+| Windows 11 Pro          | Monitored endpoint running the Wazuh Agent           |
+| Windows host            | Accessing Wazuh and testing SSH authentication       |
 
-## Project Progress
+## Detection Tests
 
-- [x] Install and configure Ubuntu Server
-- [x] Install Wazuh SIEM
-- [x] Configure networking and SSH
-- [x] Verify Wazuh Dashboard and API
-- [x] Deploy and connect Windows Agent
-- [x] Monitor Windows security events
-- [x] Test detection and investigate alerts
-- [x] Document investigation findings
-- [ ] Final conclusion
+Three controlled scenarios were tested and analysed using Wazuh.
+
+| Test                      | Activity                                                             | Result                            |
+| ------------------------- | -------------------------------------------------------------------- | --------------------------------- |
+| File Integrity Monitoring | Created, modified and deleted files in a monitored Windows directory | All changes detected in real time |
+| Windows Authentication    | Generated failed and successful interactive logins                   | Both event types detected         |
+| SSH Authentication        | Generated failed and successful SSH logins on Ubuntu                 | Both event types detected         |
+
+The alerts were reviewed using their event details, detection rules and supporting logs. All tests were performed in a controlled environment and did not involve real security incidents.
+
+Detailed test results, analysis and screenshots are available in [Detection and Analysis](docs/detection-and-analysis.md).
 
 ## Documentation
+
+### Monitoring and Analysis
+
+- [Detection and Analysis](docs/detection-and-analysis.md)
+- [Final Report](docs/final-report.md)
+
+### Environment Setup
 
 - [Ubuntu Server Setup](docs/ubuntu-server-setup.md)
 - [Wazuh Server Setup](docs/wazuh-server-setup.md)
 - [Windows VM and Wazuh Agent Setup](docs/windows-agent-setup.md)
-- [Detection and Analysis](docs/detection-and-analysis.md)
-
-Additional documentation will be added as the lab progresses.
 
 ## References
 
