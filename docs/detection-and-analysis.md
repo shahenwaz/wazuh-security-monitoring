@@ -1,6 +1,6 @@
-# Security Monitoring and Detection Tests
+# Security Monitoring - Detection and Analysis
 
-This document records the security events generated and analyzed in my [Wazuh](https://wazuh.com/) home lab. Each test uses controlled activity and evidence collected from Wazuh.
+This document records the controlled security tests performed in my [Wazuh](https://wazuh.com/) home lab, including detection results, event analysis, and supporting evidence.
 
 ## 1. [File Integrity Monitoring (FIM)](https://www.crowdstrike.com/en-us/cybersecurity-101/exposure-management/file-integrity-monitoring/)
 
@@ -49,7 +49,7 @@ Restart-Service -Name WazuhSvc
 
 ![FIM file deletion details](../images/fim-file-deletion.png)
 
-**Result:** All three actions were detected in real time. The alerts identify file changes, but do not establish properly who made them or why.
+**Result:** Wazuh detected all three file operations in real time. The alerts recorded the changes but did not establish who performed them or why.
 
 ## 2. [Windows Authentication Monitoring](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/Appendix-L--Events-to-Monitor)
 
@@ -62,7 +62,7 @@ The Windows agent was already configured to collect Security events through the 
 ### Test Activity
 
 1. Locked the Windows VM using `Win + L`.
-2. Entered an incorrect password few times for the `socwinagent` account.
+2. Entered an incorrect password several times for the `socwinagent` account.
 3. Signed in using the correct password.
 4. Verified the failed login in Windows Event Viewer under **Windows Logs → Security** (Event ID `4625`).
 5. Checked **Wazuh Threat Hunting → Events** for the corresponding authentication alerts.
@@ -98,12 +98,64 @@ These values matched our controlled failed-password test.
 
 **Successful login:** After entering the correct password, Wazuh recorded a successful workstation login under Rule `60118` (Level 3).
 
-The successful authentication appeared shortly after the failed attempt, allowing both events to be reviewed in sequence.
-
 Multiple failed-login events were visible in the dashboard, but these were generated during our own testing and do not establish a brute-force attack.
 
 **Result:** Wazuh successfully detected both failed and successful interactive Windows logins, including the relevant Windows Event IDs and Wazuh detection rules.
 
 ## 3. [SSH Authentication Monitoring](https://documentation.wazuh.com/current/proof-of-concept-guide/detect-brute-force-attack.html)
 
-_Pending testing and analysis._
+**Objective:** Verify that Wazuh detects failed and successful SSH authentication attempts on Ubuntu.
+
+**Target:** `wazuh-server` (agent `000`, `192.168.56.10`)  
+**Source:** Windows host (`192.168.56.1`)  
+**Account:** `socadmin`
+
+The Wazuh Manager was already configured to collect Ubuntu system logs through `journald` in `/var/ossec/etc/ossec.conf`. No additional configuration was required.
+
+### Test Activity
+
+1. Opened PowerShell on the Windows host and connected to Ubuntu using SSH:
+
+   ```powershell
+   ssh socadmin@192.168.56.10
+   ```
+
+2. Entered an incorrect password twice, followed by the correct password.
+3. Checked the SSH authentication logs on Ubuntu:
+
+   ```bash
+   sudo journalctl -u ssh --since "10 minutes ago" --no-pager
+   ```
+
+![SSH authentication logs on Ubuntu](../images/ssh-authentication-log-ubuntu.png)
+
+4. Verified the corresponding alerts in **Wazuh Threat Hunting → Events**, filtered by `rule.groups: sshd`.
+
+### Detection Results
+
+| Activity                      | Wazuh Rule ID | Level | Result   |
+| ----------------------------- | ------------- | ----- | -------- |
+| Failed SSH login (2 attempts) | `5760`        | 5     | Detected |
+| Successful SSH login          | `5715`        | 3     | Detected |
+
+![SSH authentication alerts in Wazuh](../images/ssh-authentication-events.png)
+
+### Observations and Analysis
+
+**Failed authentication:** Ubuntu recorded two incorrect password attempts for `socadmin` from `192.168.56.1`. Wazuh detected both under Rule `5760`, identifying the target account, source IP and authentication failure.
+
+**Successful authentication:** The correct password was accepted shortly afterward, generating Rule `5715`. Both failed and successful events shared the same source IP (`192.168.56.1`) and source port (`54451`), linking them to the same SSH connection.
+
+| Field          | Observed value |
+| -------------- | -------------- |
+| Target account | `socadmin`     |
+| Source IP      | `192.168.56.1` |
+| Source port    | `54451`        |
+| Log source     | `journald`     |
+| Decoder        | `sshd`         |
+
+Wazuh mapped the failed authentication to MITRE ATT&CK techniques `T1110.001` (Password Guessing) and `T1021.004` (SSH). These mappings provide security context but do not establish malicious activity.
+
+In a real investigation, failed login attempts followed by successful authentication from the same source could warrant further review. In this case, all attempts were intentionally generated as part of the lab.
+
+**Result:** Wazuh successfully detected failed and successful SSH authentication on Ubuntu using its existing local log collection configuration.

@@ -24,15 +24,17 @@ The project is being developed step by step, with configurations, practical exer
 - [x] Configure networking and SSH
 - [x] Verify Wazuh Dashboard and API
 - [x] Deploy and connect Windows Agent
-- [ ] Monitor Windows security events
-- [ ] Test detection and investigate alerts
-- [ ] Document investigation findings
+- [x] Monitor Windows security events
+- [x] Test detection and investigate alerts
+- [x] Document investigation findings
+- [ ] Final conclusion
 
 ## Documentation
 
 - [Ubuntu Server Setup](docs/ubuntu-server-setup.md)
 - [Wazuh Server Setup](docs/wazuh-server-setup.md)
 - [Windows VM and Wazuh Agent Setup](docs/windows-agent-setup.md)
+- [Detection and Analysis](docs/detection-and-analysis.md)
 
 Additional documentation will be added as the lab progresses.
 
